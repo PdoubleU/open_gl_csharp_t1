@@ -18,11 +18,12 @@ namespace PMLabs
     }
 
     class Program
-    {   
+    {
+        static Torus torus = new Torus();
         public static void InitOpenGLProgram(Window window)
         {
             // Czyszczenie okna na kolor czarny
-            GL.ClearColor(0, 0, 0, 1);
+            GL.ClearColor(0, 0, 3, 1);
 
             // Ładowanie programów cieniujących
             DemoShaders.InitShaders("Shaders\\");
@@ -46,6 +47,8 @@ namespace PMLabs
             GL.UniformMatrix4(DemoShaders.spConstant.U("M"), 1, false, M.Values1D);
 
             // TU RYSUJEMY
+            // torus.drawWire();
+            torus.drawSolid();
 
             Glfw.SwapBuffers(window);
         }
