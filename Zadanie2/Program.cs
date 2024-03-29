@@ -19,6 +19,7 @@ namespace PMLabs
 
     class Program
     {
+        static Torus torus = new Torus();
         public static void InitOpenGLProgram(Window window)
         {
             // Czyszczenie okna na kolor czarny
@@ -28,7 +29,7 @@ namespace PMLabs
             DemoShaders.InitShaders("Shaders\\");
         }
 
-        public static void DrawScene(Window window)
+        public static void DrawScene(Window window, float time)
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
@@ -43,9 +44,10 @@ namespace PMLabs
             GL.UniformMatrix4(DemoShaders.spConstant.U("V"), 1, false, V.Values1D);
 
             mat4 M = mat4.Identity;
+            M *= mat4.Rotate(glm.Radians(180.0f * time), new vec3(0.0f, 1.0f, 50.0f));
             GL.UniformMatrix4(DemoShaders.spConstant.U("M"), 1, false, M.Values1D);
 
-            // TU RYSUJEMY
+            torus.drawWire();
 
             Glfw.SwapBuffers(window);
         }
@@ -68,11 +70,11 @@ namespace PMLabs
 
             InitOpenGLProgram(window);
 
-            Glfw.Time = 0;
+            Glfw.Time = 155;
 
             while (!Glfw.WindowShouldClose(window))
             {
-                DrawScene(window);
+                DrawScene(window, (float)Glfw.Time);
                 Glfw.PollEvents();
             }
 

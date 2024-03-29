@@ -47,8 +47,8 @@ namespace PMLabs
             GL.UniformMatrix4(DemoShaders.spConstant.U("M"), 1, false, M.Values1D);
 
             // TU RYSUJEMY
-            // torus.drawWire();
-            torus.drawSolid();
+            torus.drawWire();
+            // torus.drawSolid();
 
             Glfw.SwapBuffers(window);
         }

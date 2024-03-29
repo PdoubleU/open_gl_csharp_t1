@@ -19,6 +19,9 @@ namespace PMLabs
 
     class Program
     {
+        static Sphere sun = new Sphere(0.5f, 10.0f, 10.0f);
+        static Sphere earth = new Sphere(0.2f, 10.0f, 10.0f);
+        static Sphere moon = new Sphere(0.1f, 10.0f, 10.0f);
         public static void InitOpenGLProgram(Window window)
         {
             // Czyszczenie okna na kolor czarny
@@ -28,27 +31,59 @@ namespace PMLabs
             DemoShaders.InitShaders("Shaders\\");
         }
 
-        public static void DrawScene(Window window)
+        public static void DrawSceneSun(Window window, float time)
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             mat4 V = mat4.LookAt(
-                new vec3(0.0f, 0.0f, -5.0f),
+                new vec3(0.0f, 0.0f, -3.0f),
                 new vec3(0.0f, 0.0f, 0.0f),
                 new vec3(0.0f, 1.0f, 0.0f));
-            mat4 P = mat4.Perspective(glm.Radians(50.0f), 1.0f, 1.0f, 50.0f);
+            mat4 P = mat4.Perspective(glm.Radians(60.0f), 1.0f, 1.0f, 0.0f);
 
             DemoShaders.spConstant.Use();
             GL.UniformMatrix4(DemoShaders.spConstant.U("P"), 1, false, P.Values1D);
             GL.UniformMatrix4(DemoShaders.spConstant.U("V"), 1, false, V.Values1D);
 
-            mat4 M = mat4.Identity;
-            GL.UniformMatrix4(DemoShaders.spConstant.U("M"), 1, false, M.Values1D);
+            vec3 sunCenter = new vec3(0.0f, 0.0f, 0.0f);
 
-            // TU RYSUJEMY
+            float earthOrbitRadius = 1.5f;
+            float moonOrbitRadius = 0.5f;
+
+            // Oblicz wspolrzedne polozenia ziemi na orbicie slonca
+            float eAngle = glm.Radians(30.0f * time); // kąt obrotu planety
+            float ePosZ = sunCenter.z + (float)Math.Cos(eAngle) * earthOrbitRadius;
+            float ePosX = sunCenter.x + (float)Math.Sin(eAngle) * earthOrbitRadius;
+            vec3 earthPosition = new vec3(ePosX, 0.0f, ePosZ);
+
+            vec3 earthCenter = earthPosition;
+
+            // Oblicz wspolrzedne polozenia księzyca na orbicie ziemi
+            float mAngle = glm.Radians(120.0f * time); // kąt obrotu księzyca
+            float mPosZ = earthCenter.z + (float)Math.Cos(mAngle) * moonOrbitRadius;
+            float mPosX = earthCenter.x + (float)Math.Sin(mAngle) * moonOrbitRadius;
+            vec3 moonPosition = new vec3(mPosX, 0.0f, mPosZ);
+
+            mat4 M1 = mat4.Identity;
+            M1 *= mat4.Translate(sunCenter); // ustawienie słonca na srodku
+            GL.UniformMatrix4(DemoShaders.spConstant.U("M"), 1, false, M1.Values1D);
+            sun.drawWire(); // rysowanie slonca
+
+            mat4 M2 = mat4.Identity;
+            M2 *= mat4.Translate(earthPosition); // przeniesienie reprezentacji ziemi w wyliczone miejsce w ukladzie
+            M2 *= mat4.Rotate(glm.Radians(180.0f * time), new vec3(0.0f, 1.0f, 0.0f)); // obrot wokol wlasnej osi
+            GL.UniformMatrix4(DemoShaders.spConstant.U("M"), 1, false, M2.Values1D);
+            earth.drawWire(); // rysowanie ziemi
+
+            mat4 M3 = mat4.Identity;
+            M3 *= mat4.Translate(moonPosition);  // przeniesienie reprezentacji księzyca w wyliczone miejsce w ukladzie
+            M3 *= mat4.Rotate(glm.Radians(-90.0f * time), new vec3(0.0f, 1.0f, 0.0f)); // obrot wokol wlasnej osi
+            GL.UniformMatrix4(DemoShaders.spConstant.U("M"), 1, false, M3.Values1D);
+            moon.drawWire(); // rysowanie ksiezyca
 
             Glfw.SwapBuffers(window);
         }
+
 
         public static void FreeOpenGLProgram(Window window)
         {
@@ -72,10 +107,9 @@ namespace PMLabs
 
             while (!Glfw.WindowShouldClose(window))
             {
-                DrawScene(window);
+                DrawSceneSun(window, (float)Glfw.Time);
                 Glfw.PollEvents();
             }
-
 
             FreeOpenGLProgram(window);
 
